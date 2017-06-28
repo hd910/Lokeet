@@ -12,15 +12,16 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity {
-    private TextView countText;
     private int unlockCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //Set Up LockScreen
+        //Hides status bar
         makeFullScreen();
 
         startService(new Intent(this,LockScreenService.class));
@@ -30,17 +31,41 @@ public class MainActivity extends AppCompatActivity {
         //Removes the KeyGuard all together (no security)
         //this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         this.getWindow().setType(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+
         setContentView(R.layout.activity_main);
 
+        unlockCount = getUnlockCount();
+
+        //Set count in textview
+        TextView countText = (TextView)findViewById(R.id.unlock_count);
+        countText.setText(Integer.toString(unlockCount));
+    }
+
+    private int getUnlockCount() {
         SharedPreferences prefs = this.getSharedPreferences("unlock_count", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        unlockCount = prefs.getInt("count", 0);
-        unlockCount++;
-        editor.putInt("count", unlockCount);
+
+        //Get current day
+        Calendar c = Calendar.getInstance();
+        int day = c.get(Calendar.DAY_OF_YEAR);
+
+        //Fetch preferences
+        int lastDayLogged = prefs.getInt("last_logged", 0);
+        int count = prefs.getInt("count", 0);
+
+        //If same day, increment. Else reset day.
+        if(lastDayLogged == day){
+            count++;
+        } else{
+            count = 0;
+        }
+
+        //Save updated shared preference
+        editor.putInt("last_logged", day);
+        editor.putInt("count", count);
         editor.apply();
 
-        countText = (TextView)findViewById(R.id.unlock_count);
-        countText.setText(Integer.toString(unlockCount));
+        return count;
     }
 
     private void makeFullScreen() {
@@ -57,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        return; //Don't Do Anything
+        //Don't Do Anything
     }
 
     @Override
@@ -67,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
 
     //Unlock screen
     public void unlockScreen(View view) {
-        unlockCount++;
         //Instead of using finish(), destroys the process
         android.os.Process.killProcess(android.os.Process.myPid());
     }
