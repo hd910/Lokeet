@@ -17,7 +17,13 @@ public class MainActivity extends AppCompatActivity {
         makeFullScreen();
 
         startService(new Intent(this,LockScreenService.class));
-        
+
+        this.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+        this.getWindow().setType(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        //Removes the KeyGuard all together (no security)
+        //this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        this.getWindow().setType(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+
         setContentView(R.layout.activity_main);
     }
 
